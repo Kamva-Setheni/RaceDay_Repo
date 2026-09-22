@@ -30,6 +30,13 @@ files are present.
 
 ![CI Build Passing](docs/ci-success.png)
 
+## Video Presentation
+
+Unlisted YouTube walkthrough covering the ERD design decisions, endpoint plan 
+choices, and a live run of the SQL script in SSMS:
+
+[(https://youtu.be/YifDDM1JpHE)]
+
 ## Setup Instructions
 
 1. Clone this repository.
