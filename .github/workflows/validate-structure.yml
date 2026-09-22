@@ -1,0 +1,32 @@
+name: Validate Repo Structure
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+    branches: [ "**" ]
+
+jobs:
+  check-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check /docs folder exists
+        run: test -d docs
+
+      - name: Check ERD file exists (PNG or PDF)
+        run: test -f docs/erd.png || test -f docs/erd.pdf
+
+      - name: Check endpoint plan exists (Markdown or PDF)
+        run: test -f docs/endpoint-plan.md || test -f docs/endpoint-plan.pdf
+
+      - name: Check SQL script exists
+        run: test -f docs/raceday-schema.sql
+
+      - name: Check README exists
+        run: test -f README.md
+
+      - name: All required files present
+        run: echo "Repository structure is valid."
