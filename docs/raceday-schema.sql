@@ -30,8 +30,11 @@ CREATE TABLE Events (
     Description     NVARCHAR(MAX)   NULL,
     EventDate       DATETIME        NOT NULL,
     Location        NVARCHAR(150)   NOT NULL,
+    Distance        DECIMAL(6,2)    NOT NULL,
+    EventType       NVARCHAR(10)    NOT NULL,
     CreatedAt       DATETIME        NOT NULL DEFAULT GETDATE(),
-    CONSTRAINT FK_Events_Users FOREIGN KEY (OrganiserId) REFERENCES Users(UserId)
+    CONSTRAINT FK_Events_Users FOREIGN KEY (OrganiserId) REFERENCES Users(UserId),
+    CONSTRAINT CK_Events_EventType CHECK (EventType IN ('Run', 'Walk', 'Cycle'))
 );
 GO
 
@@ -97,10 +100,10 @@ INSERT INTO Users (FullName, Email, PasswordHash, Role) VALUES
 ('Lindiwe Zulu', 'lindiwe.zulu@gmail.com', 'HASHED_PASSWORD_4', 'Participant');
 
 -- Events (3)
-INSERT INTO Events (OrganiserId, Name, Description, EventDate, Location) VALUES
-(1, 'Comrades Marathon 2026', 'The iconic ultramarathon between Pietermaritzburg and Durban.', '2026-06-14 05:30:00', 'Pietermaritzburg, KwaZulu-Natal'),
-(1, 'Cape Town Cycle Tour 2026', 'The world''s largest individually timed cycle race.', '2026-03-08 06:00:00', 'Cape Town, Western Cape'),
-(2, 'Soweto Marathon 2026', 'A community road running event through the streets of Soweto.', '2026-11-01 06:00:00', 'Soweto, Gauteng');
+INSERT INTO Events (OrganiserId, Name, Description, EventDate, Location, Distance, EventType) VALUES
+(1, 'Comrades Marathon 2026', 'The iconic ultramarathon between Pietermaritzburg and Durban.', '2026-06-14 05:30:00', 'Pietermaritzburg, KwaZulu-Natal', 90.00, 'Run'),
+(1, 'Cape Town Cycle Tour 2026', 'The world''s largest individually timed cycle race.', '2026-03-08 06:00:00', 'Cape Town, Western Cape', 109.00, 'Cycle'),
+(2, 'Soweto Marathon 2026', 'A community road running event through the streets of Soweto.', '2026-11-01 06:00:00', 'Soweto, Gauteng', 42.20, 'Run');
 
 -- Categories (2 per event)
 INSERT INTO Categories (EventId, Name, Distance, EntryFee) VALUES
