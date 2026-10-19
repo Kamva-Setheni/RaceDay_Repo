@@ -3,8 +3,10 @@ using RaceDay.Api.Models;
 
 namespace RaceDay.Api.Data;
 
-// Entity Framework Core context. The configuration below mirrors the Part 1 ERD and
-// raceday-schema.sql exactly (same tables, keys, constraints, defaults and constraint names).
+/// <summary>
+/// Entity Framework Core context. The configuration below mirrors the Part 1 ERD and
+/// raceday-schema.sql exactly (same tables, keys, constraints, defaults and constraint names).
+/// </summary>
 public class RaceDayDbContext : DbContext
 {
     public RaceDayDbContext(DbContextOptions<RaceDayDbContext> options) : base(options) { }
@@ -89,7 +91,7 @@ public class RaceDayDbContext : DbContext
                   .HasDatabaseName("UQ_Enrolments_Participant_Category");
         });
 
-        // ---------- Results ----------
+        // ---------- Results (one-to-one with Enrolments) ----------
         modelBuilder.Entity<Result>(entity =>
         {
             entity.Property(r => r.Status).HasMaxLength(20).IsRequired().HasDefaultValue("Not Started");
@@ -103,7 +105,7 @@ public class RaceDayDbContext : DbContext
             entity.HasIndex(r => r.EnrolmentId).IsUnique().HasDatabaseName("UQ_Results_EnrolmentId");
         });
 
-        // ---------- Payments ----------
+        // ---------- Payments (one-to-one with Enrolments) ----------
         modelBuilder.Entity<Payment>(entity =>
         {
             entity.Property(p => p.Amount).HasPrecision(8, 2);

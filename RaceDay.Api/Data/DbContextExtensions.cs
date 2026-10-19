@@ -4,8 +4,10 @@ namespace RaceDay.Api.Data;
 
 public static class DbContextExtensions
 {
-    // The foreign keys use NO ACTION (as in the Part 1 SQL script), so child rows are removed
-    // explicitly here. Removes the results, payments and enrolments of the given categories.
+    /// <summary>
+    /// The foreign keys use NO ACTION (as in the Part 1 SQL script), so child rows are removed
+    /// explicitly here. Removes the results, payments and enrolments of the given categories.
+    /// </summary>
     public static async Task RemoveEnrolmentsForCategoriesAsync(this RaceDayDbContext db, List<int> categoryIds)
     {
         if (categoryIds.Count == 0) return;
