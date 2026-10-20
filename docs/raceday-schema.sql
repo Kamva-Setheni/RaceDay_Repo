@@ -139,3 +139,8 @@ SELECT * FROM Categories;
 SELECT * FROM Enrolments;
 SELECT * FROM Results;
 SELECT * FROM Payments;
+
+   USE RaceDay;
+   SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' ORDER BY TABLE_NAME;
+   SELECT name FROM sys.foreign_keys ORDER BY name;
+   SELECT name FROM sys.check_constraints ORDER BY name;
