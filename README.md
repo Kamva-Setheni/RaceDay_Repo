@@ -151,8 +151,8 @@ The workflow `.github/workflows/part2-build-test.yml` runs on every push. It che
 
 ### Part 2 video
 
-PASTE_PART2_VIDEO_LINK_HERE
-
+[(https://youtu.be/ADO-hm_i5Zs)
+]
 ---
 
 ## References
