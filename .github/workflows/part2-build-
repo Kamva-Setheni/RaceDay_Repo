@@ -1,0 +1,36 @@
+name: Part 2 - Build and Test
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+    branches: [ "**" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check Part 2 folder structure
+        run: |
+          test -d Part2/RaceDay.Api
+          test -d Part2/RaceDay.Tests
+          test -f Part2/RaceDay.Api/Program.cs
+          test -f Part2/RaceDay.Api/appsettings.json
+          test -f README.md
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore Part2/RaceDay.Tests/RaceDay.Tests.csproj
+
+      - name: Build
+        run: dotnet build Part2/RaceDay.Tests/RaceDay.Tests.csproj --no-restore
+
+      - name: Run unit tests
+        run: dotnet test Part2/RaceDay.Tests/RaceDay.Tests.csproj --no-build --verbosity normal
