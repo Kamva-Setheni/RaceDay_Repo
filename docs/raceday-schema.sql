@@ -16,6 +16,7 @@ CREATE TABLE Users (
     Email           NVARCHAR(150)   NOT NULL UNIQUE,
     PasswordHash    NVARCHAR(255)   NOT NULL,
     Role            NVARCHAR(20)    NOT NULL,
+    ProfilePictureUrl NVARCHAR(500) NULL,
     CreatedAt       DATETIME        NOT NULL DEFAULT GETDATE(),
     CONSTRAINT CK_Users_Role CHECK (Role IN ('Organiser', 'Participant'))
 );
@@ -32,6 +33,7 @@ CREATE TABLE Events (
     Location        NVARCHAR(150)   NOT NULL,
     Distance        DECIMAL(6,2)    NOT NULL,
     EventType       NVARCHAR(10)    NOT NULL,
+    BannerImageUrl NVARCHAR(500) NULL,
     CreatedAt       DATETIME        NOT NULL DEFAULT GETDATE(),
     CONSTRAINT FK_Events_Users FOREIGN KEY (OrganiserId) REFERENCES Users(UserId),
     CONSTRAINT CK_Events_EventType CHECK (EventType IN ('Run', 'Walk', 'Cycle'))
@@ -144,3 +146,6 @@ SELECT * FROM Payments;
    SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' ORDER BY TABLE_NAME;
    SELECT name FROM sys.foreign_keys ORDER BY name;
    SELECT name FROM sys.check_constraints ORDER BY name;
+
+   USE RaceDay;
+SELECT TABLE_NAME, COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE COLUMN_NAME IN ('ProfilePictureUrl','BannerImageUrl')
