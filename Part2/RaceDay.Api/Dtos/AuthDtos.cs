@@ -42,4 +42,4 @@ public class UpdateProfileRequest
     public string Email { get; set; } = string.Empty;
 }
 
-public record UserResponse(int UserId, string FullName, string Email, string Role, DateTime CreatedAt);
+public record UserResponse(int UserId, string FullName, string Email, string Role, DateTime CreatedAt, string? ProfilePictureUrl = null);

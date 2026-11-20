@@ -27,4 +27,10 @@ public class EventRequest
 
 public record EventResponse(
     int EventId, int OrganiserId, string Name, string? Description,
-    DateTime EventDate, string Location, decimal Distance, string EventType, DateTime CreatedAt);
+    DateTime EventDate, string Location, decimal Distance, string EventType, DateTime CreatedAt,
+    string? BannerImageUrl = null);
+
+/// <summary>One row of the Organiser dashboard: an event with its enrolment and category counts.</summary>
+public record OrganiserEventSummary(
+    int EventId, string Name, DateTime EventDate, string Location, string EventType,
+    decimal Distance, string? BannerImageUrl, int CategoryCount, int EnrolmentCount);

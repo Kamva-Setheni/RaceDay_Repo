@@ -127,5 +127,5 @@ public class AuthController : ApiControllerBase
     }
 
     private static UserResponse ToResponse(AppUser u) =>
-        new(u.UserId, u.FullName, u.Email, u.Role, u.CreatedAt);
+        new(u.UserId, u.FullName, u.Email, u.Role, u.CreatedAt, u.ProfilePictureUrl);
 }

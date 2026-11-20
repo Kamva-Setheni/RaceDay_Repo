@@ -18,4 +18,5 @@ public class ResultRequest
 
 public record ResultResponse(
     int ResultId, int EnrolmentId, string ParticipantName, string EventName, string CategoryName,
-    TimeSpan? FinishTime, int? Position, string Status);
+    TimeSpan? FinishTime, int? Position, string Status,
+    int EventId, DateTime EventDate, int TotalFinishers);

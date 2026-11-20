@@ -13,6 +13,9 @@ if (!builder.Environment.IsEnvironment("Testing"))
 {
     builder.Services.AddDbContext<RaceDayDbContext>(options =>
         options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+    // Azure Blob Storage for event banners and profile pictures (the tests supply a fake)
+    builder.Services.AddSingleton<IBlobStorageService, AzureBlobStorageService>();
 }
 
 // ---------- Server-side session ----------

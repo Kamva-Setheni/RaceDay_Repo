@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -5,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using RaceDay.Api.Data;
 using RaceDay.Api.Dtos;
+using RaceDay.Api.Services;
 
 namespace RaceDay.Tests;
 
@@ -22,8 +24,13 @@ public class RaceDayFactory : WebApplicationFactory<Program>
         builder.ConfigureServices(services =>
         {
             services.AddDbContext<RaceDayDbContext>(options => options.UseInMemoryDatabase(_databaseName));
+            services.AddSingleton<IBlobStorageService, FakeBlobStorageService>();
         });
     }
+
+    /// <summary>The fake blob storage, so tests can check what was uploaded and deleted.</summary>
+    public FakeBlobStorageService Blobs =>
+        (FakeBlobStorageService)Services.GetRequiredService<IBlobStorageService>();
 }
 
 /// <summary>A registered, logged-in test user. The client's cookie container holds their session cookie.</summary>
@@ -75,6 +82,20 @@ public class ApiHelper
         var user = (await login.Content.ReadFromJsonAsync<UserResponse>())!;
 
         return new TestUser(client, user, email, DefaultPassword);
+    }
+
+    /// <summary>A valid 1x1 PNG image.</summary>
+    public static readonly byte[] TinyPng = Convert.FromBase64String(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==");
+
+    /// <summary>Builds a multipart/form-data body with the image in a field called "file".</summary>
+    public static MultipartFormDataContent ImageForm(byte[] bytes, string fileName, string contentType = "image/png")
+    {
+        var form = new MultipartFormDataContent();
+        var file = new ByteArrayContent(bytes);
+        file.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+        form.Add(file, "file", fileName);
+        return form;
     }
 
     public static EventRequest SampleEvent(string name = "Test 10km Road Race") => new()

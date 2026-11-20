@@ -3,12 +3,12 @@ using RaceDay.Api.Helpers;
 
 namespace RaceDay.Api.Controllers;
 
-/// Shared behaviour for all controllers: JSON, automatic validation (400) and error helpers.
+/// <summary>Shared behaviour for all controllers: JSON, automatic validation (400) and error helpers.</summary>
 [ApiController]
 [Produces("application/json")]
 public abstract class ApiControllerBase : ControllerBase
 {
-    /// The id of the logged-in user, taken from the session.
+    /// <summary>The id of the logged-in user, taken from the session.</summary>
     protected int CurrentUserId => User.GetUserId();
 
     protected ObjectResult BadRequestProblem(string detail) =>
@@ -22,6 +22,9 @@ public abstract class ApiControllerBase : ControllerBase
 
     protected ObjectResult NotFoundProblem(string detail) =>
         Problem(detail: detail, statusCode: StatusCodes.Status404NotFound, title: "Not Found");
+
+    protected ObjectResult ServiceUnavailableProblem(string detail) =>
+        Problem(detail: detail, statusCode: StatusCodes.Status503ServiceUnavailable, title: "Service Unavailable");
 
     protected ObjectResult ConflictProblem(string detail) =>
         Problem(detail: detail, statusCode: StatusCodes.Status409Conflict, title: "Conflict");

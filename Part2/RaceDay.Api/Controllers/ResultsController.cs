@@ -152,7 +152,7 @@ public class ResultsController : ApiControllerBase
         return null;
     }
 
-    private static IQueryable<ResultResponse> Project(IQueryable<Result> query) =>
+    private IQueryable<ResultResponse> Project(IQueryable<Result> query) =>
         query.Select(r => new ResultResponse(
             r.ResultId,
             r.EnrolmentId,
@@ -161,5 +161,10 @@ public class ResultsController : ApiControllerBase
             r.Enrolment!.Category!.Name,
             r.FinishTime,
             r.Position,
-            r.Status));
+            r.Status,
+            r.Enrolment!.Category!.EventId,
+            r.Enrolment!.Category!.Event!.EventDate,
+            // number of people who finished this event (used for "47th out of 312 finishers")
+            _db.Results.Count(x => x.Status == "Finished"
+                && x.Enrolment!.Category!.EventId == r.Enrolment!.Category!.EventId)));
 }
