@@ -12,7 +12,7 @@ using RaceDay.Api.Data;
 namespace RaceDay.Api.Migrations
 {
     [DbContext(typeof(RaceDayDbContext))]
-    [Migration("20261120074225_AddImageUrls")]
+    [Migration("20261120081532_AddImageUrls")]
     partial class AddImageUrls
     {
         /// <inheritdoc />
