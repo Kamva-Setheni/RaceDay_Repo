@@ -1,0 +1,44 @@
+@model CategoryFormViewModel
+@{
+    ViewData["Title"] = "Edit category";
+}
+<div class="container">
+    <div class="rd-auth">
+        <div class="rd-panel">
+            <p class="rd-eyebrow">Organiser</p>
+            <h1 class="rd-display fs-1">Edit category</h1>
+
+            <form asp-action="EditCategory" method="post" novalidate>
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                <input type="hidden" asp-for="CategoryId" />
+                <input type="hidden" asp-for="EventId" />
+
+                <div class="mb-3">
+                    <label asp-for="Name" class="form-label"></label>
+                    <input asp-for="Name" class="form-control" />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+                <div class="row">
+                    <div class="col-6 mb-3">
+                        <label asp-for="Distance" class="form-label"></label>
+                        <input asp-for="Distance" class="form-control" type="text" inputmode="decimal" />
+                        <span asp-validation-for="Distance" class="text-danger"></span>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <label asp-for="EntryFee" class="form-label"></label>
+                        <input asp-for="EntryFee" class="form-control" type="text" inputmode="decimal" />
+                        <span asp-validation-for="EntryFee" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-rd">Save changes</button>
+                    <a class="btn btn-outline-secondary" asp-action="Categories" asp-route-id="@Model.EventId">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

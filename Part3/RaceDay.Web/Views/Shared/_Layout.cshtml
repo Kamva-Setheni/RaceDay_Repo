@@ -1,0 +1,92 @@
+@{
+    var user = Context.Session.GetCurrentUser();
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty;
+    var action = ViewContext.RouteData.Values["action"]?.ToString() ?? string.Empty;
+    string Active(bool on) => on ? "active" : string.Empty;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - RaceDay</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;1,800&family=Inter:wght@400;500;600;700&display=swap" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark rd-navbar">
+            <div class="container">
+                <a class="navbar-brand rd-brand" asp-controller="Home" asp-action="Index">RACE<span>DAY</span></a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#rd-nav"
+                        aria-controls="rd-nav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="rd-nav">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        @if (user is null)
+                        {
+                            <li class="nav-item"><a class="nav-link @Active(controller == "Home" || controller == "Events")" asp-controller="Home" asp-action="Index">Events</a></li>
+                        }
+                        else if (user.IsOrganiser)
+                        {
+                            <li class="nav-item"><a class="nav-link @Active(action == "Dashboard")" asp-controller="Organiser" asp-action="Dashboard">Dashboard</a></li>
+                            <li class="nav-item"><a class="nav-link @Active(controller == "Organiser" && action != "Dashboard")" asp-controller="Organiser" asp-action="Events">My events</a></li>
+                        }
+                        else
+                        {
+                            <li class="nav-item"><a class="nav-link @Active(controller == "Home" || controller == "Events")" asp-controller="Home" asp-action="Index">Browse events</a></li>
+                            <li class="nav-item"><a class="nav-link @Active(action == "MyEvents")" asp-controller="Participant" asp-action="MyEvents">My events</a></li>
+                            <li class="nav-item"><a class="nav-link @Active(action == "MyResults")" asp-controller="Participant" asp-action="MyResults">My results</a></li>
+                            <li class="nav-item"><a class="nav-link @Active(action == "Profile")" asp-controller="Participant" asp-action="Profile">Profile</a></li>
+                        }
+                    </ul>
+                    <div class="d-flex align-items-center gap-2">
+                        @if (user is null)
+                        {
+                            <a class="btn btn-outline-light btn-sm" asp-controller="Account" asp-action="Login">Log in</a>
+                            <a class="btn btn-rd btn-sm" asp-controller="Account" asp-action="Register">Join RaceDay</a>
+                        }
+                        else
+                        {
+                            if (user.ProfilePictureUrl is not null)
+                            {
+                                <img class="rd-avatar" src="@user.ProfilePictureUrl" alt="" onerror="this.style.display='none'" />
+                            }
+                            else
+                            {
+                                <span class="rd-avatar-initials">@UiHelpers.Initials(user.FullName)</span>
+                            }
+                            <span class="text-white fw-semibold d-none d-md-inline">@user.FullName</span>
+                            <span class="rd-role-pill">@user.Role</span>
+                            <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline ms-1">
+                                <button type="submit" class="btn btn-outline-light btn-sm">Log out</button>
+                            </form>
+                        }
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main role="main">
+        <div class="container pt-3">
+            <partial name="_Alerts" />
+        </div>
+        @RenderBody()
+    </main>
+
+    <footer class="rd-footer">
+        <div class="container">
+            &copy; 2026 <span>RaceDay</span> &middot; Built for South Africa's road running, walking and cycling community
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

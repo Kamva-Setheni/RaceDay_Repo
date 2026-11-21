@@ -1,0 +1,67 @@
+@model OrganiserDashboardViewModel
+@{
+    ViewData["Title"] = "My events";
+}
+<div class="container rd-main">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+        <div>
+            <p class="rd-eyebrow mb-1">Organiser</p>
+            <h1 class="rd-display fs-1 mb-0">My events</h1>
+        </div>
+        <a class="btn btn-rd btn-lg" asp-action="CreateEvent">+ Create event</a>
+    </div>
+
+    @if (Model.Error is not null)
+    {
+        <div class="alert alert-warning">@Model.Error</div>
+    }
+
+    @if (!Model.Events.Any())
+    {
+        <div class="rd-empty">
+            <div class="icon">📅</div>
+            <h3 class="mt-2">No events yet</h3>
+            <p class="text-muted">Create your first event, add categories and start taking entries.</p>
+            <a class="btn btn-rd" asp-action="CreateEvent">Create event</a>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table rd-table align-middle">
+                <thead>
+                    <tr><th></th><th>Event</th><th>Date</th><th>Distance</th><th>Categories</th><th>Enrolments</th><th class="text-end">Actions</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var ev in Model.Events.OrderBy(e => e.EventDate))
+                    {
+                        <tr>
+                            <td><partial name="_EventThumb" model="ev" /></td>
+                            <td class="fw-semibold">
+                                @ev.Name
+                                <span class="rd-type @UiHelpers.TypeCss(ev.EventType) ms-1">@ev.EventType</span>
+                                <div class="small text-muted fw-normal">@ev.Location</div>
+                            </td>
+                            <td>@UiHelpers.DateShort(ev.EventDate)</td>
+                            <td>@ev.Distance.ToString("0.##") km</td>
+                            <td>@ev.CategoryCount</td>
+                            <td>@ev.EnrolmentCount</td>
+                            <td class="text-end">
+                                <div class="d-inline-flex flex-wrap gap-1 justify-content-end">
+                                    <a class="btn btn-sm btn-outline-secondary" asp-action="EditEvent" asp-route-id="@ev.EventId">Edit</a>
+                                    <a class="btn btn-sm btn-outline-rd" asp-action="Categories" asp-route-id="@ev.EventId">Categories</a>
+                                    <a class="btn btn-sm btn-navy" asp-action="Enrolments" asp-route-id="@ev.EventId">Enrolments</a>
+                                    <a class="btn btn-sm btn-rd" asp-action="Results" asp-route-id="@ev.EventId">Results</a>
+                                    <form asp-action="DeleteEvent" asp-route-id="@ev.EventId" method="post"
+                                          data-confirm="Delete @ev.Name? This also removes its categories and enrolments and cannot be undone.">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

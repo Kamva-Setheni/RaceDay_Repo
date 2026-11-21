@@ -199,4 +199,22 @@ public class EnrolmentTests : IClassFixture<RaceDayFactory>
         var again = await participant.Client.PostAsJsonAsync(url, new PaymentRequest { Amount = 250m });
         Assert.Equal(HttpStatusCode.Conflict, again.StatusCode);
     }
+
+    [Fact]
+    public async Task Enrolling_InAFreeCategory_IsConfirmedImmediately_AndReturnsFeeAndEventDate()
+    {
+        var organiser = await _api.RegisterAndLoginAsync("Organiser");
+        var participant = await _api.RegisterAndLoginAsync("Participant");
+        var ev = await _api.CreateEventAsync(organiser.Client);
+        var free = await _api.CreateCategoryAsync(organiser.Client, ev.EventId, entryFee: 0m);
+        var paid = await _api.CreateCategoryAsync(organiser.Client, ev.EventId, entryFee: 250m);
+
+        var freeEnrolment = await _api.EnrolAsync(participant.Client, free.CategoryId);
+        var paidEnrolment = await _api.EnrolAsync(participant.Client, paid.CategoryId);
+
+        Assert.Equal("Confirmed", freeEnrolment.Status);
+        Assert.Equal("Pending", paidEnrolment.Status);
+        Assert.Equal(250m, paidEnrolment.EntryFee);
+        Assert.Equal(ev.EventDate.Date, paidEnrolment.EventDate.Date);
+    }
 }

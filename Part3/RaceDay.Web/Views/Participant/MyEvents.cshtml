@@ -1,0 +1,62 @@
+@model List<EnrolmentDto>
+@{
+    ViewData["Title"] = "My events";
+}
+<div class="container rd-main">
+    <p class="rd-eyebrow mb-1">Participant</p>
+    <h1 class="rd-display fs-1">My events</h1>
+
+    @if (ViewBag.Error is string error)
+    {
+        <div class="alert alert-warning">@error</div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="rd-empty">
+            <div class="icon">🎽</div>
+            <h3 class="mt-2">You have not entered any events yet</h3>
+            <p class="text-muted">Find a race you like and pick a category to enter.</p>
+            <a class="btn btn-rd" asp-controller="Home" asp-action="Index">Browse events</a>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table rd-table align-middle">
+                <thead>
+                    <tr><th>Event</th><th>Date</th><th>Category</th><th>Entry fee</th><th>Status</th><th class="text-end">Actions</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var enrolment in Model)
+                    {
+                        <tr>
+                            <td class="fw-semibold">
+                                <a asp-controller="Events" asp-action="Details" asp-route-id="@enrolment.EventId">@enrolment.EventName</a>
+                            </td>
+                            <td>@UiHelpers.DateShort(enrolment.EventDate)</td>
+                            <td>@enrolment.CategoryName</td>
+                            <td>@UiHelpers.Money(enrolment.EntryFee)</td>
+                            <td><partial name="_StatusBadge" model="enrolment.Status" /></td>
+                            <td class="text-end">
+                                <div class="d-inline-flex gap-2">
+                                    @if (enrolment.Status == "Pending" && enrolment.EntryFee > 0)
+                                    {
+                                        <form asp-action="Pay" asp-route-id="@enrolment.EnrolmentId" method="post">
+                                            <button type="submit" class="btn btn-rd btn-sm">Pay @UiHelpers.Money(enrolment.EntryFee)</button>
+                                        </form>
+                                    }
+                                    <form asp-action="Cancel" asp-route-id="@enrolment.EnrolmentId" method="post"
+                                          data-confirm="Cancel your entry to @enrolment.EventName?">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">Cancel</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <p class="text-muted small mt-3"><span class="status-pill status-pending">Pending</span> entries are confirmed once the entry fee is paid.</p>
+    }
+</div>

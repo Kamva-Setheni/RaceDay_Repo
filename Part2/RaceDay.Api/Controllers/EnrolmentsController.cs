@@ -33,7 +33,8 @@ public class EnrolmentsController : ApiControllerBase
     {
         var userId = CurrentUserId;
 
-        if (!await _db.Categories.AnyAsync(c => c.CategoryId == id))
+        var category = await _db.Categories.AsNoTracking().FirstOrDefaultAsync(c => c.CategoryId == id);
+        if (category is null)
             return NotFoundProblem($"Category {id} does not exist.");
 
         if (await _db.Enrolments.AnyAsync(e => e.ParticipantId == userId && e.CategoryId == id))
@@ -44,7 +45,8 @@ public class EnrolmentsController : ApiControllerBase
             ParticipantId = userId,
             CategoryId = id,
             EnrolmentDate = DateTime.UtcNow,
-            Status = "Pending"
+            // free categories need no payment, so they are confirmed straight away
+            Status = category.EntryFee == 0 ? "Confirmed" : "Pending"
         };
 
         _db.Enrolments.Add(enrolment);
@@ -142,5 +144,7 @@ public class EnrolmentsController : ApiControllerBase
             e.Category!.EventId,
             e.Category!.Event!.Name,
             e.EnrolmentDate,
-            e.Status));
+            e.Status,
+            e.Category!.EntryFee,
+            e.Category!.Event!.EventDate));
 }

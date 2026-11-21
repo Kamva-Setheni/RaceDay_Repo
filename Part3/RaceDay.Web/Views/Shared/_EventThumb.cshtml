@@ -1,0 +1,9 @@
+@model OrganiserEventDto
+@if (!string.IsNullOrEmpty(Model.BannerImageUrl))
+{
+    <img class="rd-thumb" src="@Model.BannerImageUrl" alt="" onerror="this.style.display='none'" />
+}
+else
+{
+    <span class="rd-thumb-placeholder @UiHelpers.TypeCss(Model.EventType)">@UiHelpers.TypeIcon(Model.EventType)</span>
+}

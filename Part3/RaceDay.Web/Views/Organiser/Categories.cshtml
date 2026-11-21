@@ -1,0 +1,80 @@
+@model CategoriesViewModel
+@{
+    ViewData["Title"] = "Categories - " + Model.Event.Name;
+}
+<div class="container rd-main">
+    <p class="rd-eyebrow mb-1">Organiser &middot; @Model.Event.Name</p>
+    <h1 class="rd-display fs-1">Categories</h1>
+    <p class="text-muted">Add the age or distance categories people can enter, for example Under 20, Senior, 10km or 21km.</p>
+
+    @if (ViewBag.Error is string error)
+    {
+        <div class="alert alert-warning">@error</div>
+    }
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            @if (!Model.Categories.Any())
+            {
+                <div class="rd-empty">
+                    <div class="icon">📋</div>
+                    <p class="text-muted mt-2 mb-0">No categories yet. Add the first one using the form.</p>
+                </div>
+            }
+            else
+            {
+                <table class="table rd-table align-middle">
+                    <thead><tr><th>Category</th><th>Distance</th><th>Entry fee</th><th class="text-end">Actions</th></tr></thead>
+                    <tbody>
+                        @foreach (var category in Model.Categories)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@category.Name</td>
+                                <td>@category.Distance.ToString("0.##") km</td>
+                                <td>@UiHelpers.Money(category.EntryFee)</td>
+                                <td class="text-end">
+                                    <div class="d-inline-flex gap-1">
+                                        <a class="btn btn-sm btn-outline-secondary" asp-action="EditCategory" asp-route-id="@category.CategoryId" asp-route-eventId="@Model.Event.EventId">Edit</a>
+                                        <form asp-action="DeleteCategory" asp-route-id="@category.CategoryId" asp-route-eventId="@Model.Event.EventId" method="post"
+                                              data-confirm="Delete the @category.Name category? Anyone entered in it will be removed.">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+
+        <div class="col-lg-5">
+            <div class="rd-panel">
+                <h3 class="mb-3">Add a category</h3>
+                <form asp-action="AddCategory" method="post" novalidate>
+                    <input type="hidden" name="EventId" value="@Model.Event.EventId" />
+                    <div class="mb-3">
+                        <label class="form-label" for="cat-name">Category name</label>
+                        <input class="form-control" id="cat-name" name="Name" placeholder="e.g. 10km Open" required />
+                    </div>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label" for="cat-distance">Distance (km)</label>
+                            <input class="form-control" id="cat-distance" name="Distance" inputmode="decimal" placeholder="10" required />
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label" for="cat-fee">Entry fee (R)</label>
+                            <input class="form-control" id="cat-fee" name="EntryFee" inputmode="decimal" placeholder="150" value="0" required />
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-rd w-100">Add category</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4 d-flex gap-2">
+        <a class="btn btn-outline-secondary" asp-action="Events">← My events</a>
+        <a class="btn btn-navy" asp-action="Enrolments" asp-route-id="@Model.Event.EventId">View enrolments</a>
+    </div>
+</div>

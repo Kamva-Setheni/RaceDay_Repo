@@ -1,0 +1,102 @@
+@model OrganiserDashboardViewModel
+@{
+    ViewData["Title"] = "Organiser dashboard";
+    var user = Context.Session.GetCurrentUser();
+}
+<div class="container rd-main">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+        <div>
+            <p class="rd-eyebrow mb-1">Organiser dashboard</p>
+            <h1 class="rd-display fs-1 mb-0">Welcome back, @(user?.FullName)</h1>
+        </div>
+        <a class="btn btn-rd btn-lg" asp-action="CreateEvent">+ Create event</a>
+    </div>
+
+    @if (Model.Error is not null)
+    {
+        <div class="alert alert-warning">@Model.Error</div>
+    }
+
+    <div class="row g-3 mb-5">
+        <div class="col-6 col-lg-3"><div class="rd-stat"><div class="rd-stat-number">@Model.TotalEvents</div><div class="rd-stat-label">Events created</div></div></div>
+        <div class="col-6 col-lg-3"><div class="rd-stat stat-green"><div class="rd-stat-number">@Model.TotalEnrolments</div><div class="rd-stat-label">Total enrolments</div></div></div>
+        <div class="col-6 col-lg-3"><div class="rd-stat stat-purple"><div class="rd-stat-number">@Model.Upcoming.Count</div><div class="rd-stat-label">Upcoming events</div></div></div>
+        <div class="col-6 col-lg-3">
+            <div class="rd-stat stat-navy">
+                @if (Model.NextEvent is not null)
+                {
+                    <div class="rd-stat-number" style="font-size:1.9rem">@UiHelpers.DateShort(Model.NextEvent.EventDate)</div>
+                    <div class="rd-stat-label">Next: @Model.NextEvent.Name</div>
+                }
+                else
+                {
+                    <div class="rd-stat-number" style="font-size:1.9rem">None</div>
+                    <div class="rd-stat-label">No upcoming event</div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <h2 class="rd-section">Upcoming events</h2>
+    @if (!Model.Upcoming.Any())
+    {
+        <div class="rd-empty mb-5">
+            <div class="icon">📅</div>
+            <p class="text-muted mt-2">You have no upcoming events. Create one to start taking entries.</p>
+            <a class="btn btn-rd" asp-action="CreateEvent">Create your first event</a>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive mb-5">
+            <table class="table rd-table align-middle">
+                <thead>
+                    <tr><th></th><th>Event</th><th>Date</th><th>Location</th><th>Categories</th><th>Enrolments</th><th class="text-end">Manage</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var ev in Model.Upcoming)
+                    {
+                        <tr>
+                            <td><partial name="_EventThumb" model="ev" /></td>
+                            <td class="fw-semibold">@ev.Name <span class="rd-type @UiHelpers.TypeCss(ev.EventType) ms-1">@ev.EventType</span></td>
+                            <td>@UiHelpers.DateShort(ev.EventDate)</td>
+                            <td>@ev.Location</td>
+                            <td>@ev.CategoryCount</td>
+                            <td><span class="status-pill @(ev.EnrolmentCount > 0 ? "status-confirmed" : "status-muted")">@ev.EnrolmentCount enrolled</span></td>
+                            <td class="text-end">
+                                <a class="btn btn-sm btn-navy" asp-action="Enrolments" asp-route-id="@ev.EventId">Enrolments</a>
+                                <a class="btn btn-sm btn-outline-rd" asp-action="Categories" asp-route-id="@ev.EventId">Categories</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    @if (Model.Past.Any())
+    {
+        <h2 class="rd-section">Past events</h2>
+        <div class="table-responsive">
+            <table class="table rd-table align-middle">
+                <thead>
+                    <tr><th></th><th>Event</th><th>Date</th><th>Enrolments</th><th class="text-end">Manage</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var ev in Model.Past)
+                    {
+                        <tr>
+                            <td><partial name="_EventThumb" model="ev" /></td>
+                            <td class="fw-semibold">@ev.Name</td>
+                            <td>@UiHelpers.DateShort(ev.EventDate)</td>
+                            <td>@ev.EnrolmentCount</td>
+                            <td class="text-end">
+                                <a class="btn btn-sm btn-rd" asp-action="Results" asp-route-id="@ev.EventId">Enter results</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

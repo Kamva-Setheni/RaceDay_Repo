@@ -1,0 +1,108 @@
+@model EventDetailsViewModel
+@{
+    var ev = Model.Event;
+    ViewData["Title"] = ev.Name;
+    var user = Context.Session.GetCurrentUser();
+    var upcoming = UiHelpers.IsUpcoming(ev.EventDate);
+}
+
+@if (!string.IsNullOrEmpty(ev.BannerImageUrl))
+{
+    <img class="rd-event-banner" src="@ev.BannerImageUrl" alt="Banner for @ev.Name"
+         onerror="this.onerror=null;this.src='@Url.Content("~/img/event-placeholder.svg")'" />
+}
+else
+{
+    <div class="rd-event-banner rd-placeholder @UiHelpers.TypeCss(ev.EventType)">@UiHelpers.TypeIcon(ev.EventType)</div>
+}
+
+<div class="container rd-main">
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+        <span class="rd-type @UiHelpers.TypeCss(ev.EventType)">@ev.EventType</span>
+        @if (!upcoming)
+        {
+            <span class="status-pill status-muted">Event has finished</span>
+        }
+    </div>
+    <h1 class="rd-display fs-1">@ev.Name</h1>
+
+    <div class="row g-3 my-3">
+        <div class="col-6 col-md-3"><div class="rd-fact"><div class="label">Date</div><div class="value">@UiHelpers.DateLong(ev.EventDate)</div></div></div>
+        <div class="col-6 col-md-3"><div class="rd-fact"><div class="label">Location</div><div class="value">@ev.Location</div></div></div>
+        <div class="col-6 col-md-3"><div class="rd-fact"><div class="label">Distance</div><div class="value">@ev.Distance.ToString("0.##") km</div></div></div>
+        <div class="col-6 col-md-3"><div class="rd-fact"><div class="label">Type</div><div class="value">@UiHelpers.TypeIcon(ev.EventType) @ev.EventType</div></div></div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(ev.Description))
+    {
+        <div class="rd-panel mb-4"><p class="mb-0" style="white-space:pre-line">@ev.Description</p></div>
+    }
+
+    <h2 class="rd-section">Categories</h2>
+
+    @if (ViewBag.CategoryError is string categoryError)
+    {
+        <div class="alert alert-warning">@categoryError</div>
+    }
+
+    @if (!Model.Categories.Any())
+    {
+        <div class="rd-empty">
+            <div class="icon">📋</div>
+            <p class="text-muted mb-0 mt-2">The organiser has not added any categories yet. Check back soon.</p>
+        </div>
+    }
+    else
+    {
+        <table class="table rd-table align-middle">
+            <thead>
+                <tr><th>Category</th><th>Distance</th><th>Entry fee</th><th class="text-end">Enter</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var category in Model.Categories)
+                {
+                    <tr>
+                        <td class="fw-semibold">@category.Name</td>
+                        <td>@category.Distance.ToString("0.##") km</td>
+                        <td>@UiHelpers.Money(category.EntryFee)</td>
+                        <td class="text-end">
+                            @if (!upcoming)
+                            {
+                                <span class="text-muted small">Closed</span>
+                            }
+                            else if (user is null)
+                            {
+                                <a class="btn btn-outline-rd btn-sm" asp-controller="Account" asp-action="Login"
+                                   asp-route-returnUrl="@Url.Action("Details", "Events", new { id = ev.EventId })">Log in to enter</a>
+                            }
+                            else if (user.IsParticipant && Model.EnrolledCategoryIds.Contains(category.CategoryId))
+                            {
+                                <span class="status-pill status-confirmed">✓ You have entered</span>
+                            }
+                            else if (user.IsParticipant)
+                            {
+                                <form asp-controller="Events" asp-action="Enrol" method="post" class="d-inline">
+                                    <input type="hidden" name="categoryId" value="@category.CategoryId" />
+                                    <input type="hidden" name="eventId" value="@ev.EventId" />
+                                    <button type="submit" class="btn btn-rd btn-sm">Enter this category</button>
+                                </form>
+                            }
+                            else
+                            {
+                                <span class="text-muted small">Organisers cannot enter events</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    <div class="mt-4 d-flex gap-2">
+        <a class="btn btn-outline-secondary" asp-controller="Home" asp-action="Index">← Back to events</a>
+        @if (Model.IsOwner)
+        {
+            <a class="btn btn-navy" asp-controller="Organiser" asp-action="Categories" asp-route-id="@ev.EventId">Manage this event</a>
+        }
+    </div>
+</div>

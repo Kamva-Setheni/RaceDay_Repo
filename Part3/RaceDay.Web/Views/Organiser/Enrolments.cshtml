@@ -1,0 +1,52 @@
+@model EnrolmentsViewModel
+@{
+    ViewData["Title"] = "Enrolments - " + Model.Event.Name;
+}
+<div class="container rd-main">
+    <p class="rd-eyebrow mb-1">Organiser &middot; @Model.Event.Name</p>
+    <h1 class="rd-display fs-1">Enrolments</h1>
+
+    @if (ViewBag.Error is string error)
+    {
+        <div class="alert alert-warning">@error</div>
+    }
+
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3"><div class="rd-stat"><div class="rd-stat-number">@Model.Enrolments.Count</div><div class="rd-stat-label">Total enrolled</div></div></div>
+        <div class="col-6 col-md-3"><div class="rd-stat stat-green"><div class="rd-stat-number">@Model.Enrolments.Count(e => e.Status == "Confirmed")</div><div class="rd-stat-label">Confirmed</div></div></div>
+        <div class="col-6 col-md-3"><div class="rd-stat stat-purple"><div class="rd-stat-number">@Model.Enrolments.Count(e => e.Status == "Pending")</div><div class="rd-stat-label">Pending payment</div></div></div>
+    </div>
+
+    @if (!Model.Enrolments.Any())
+    {
+        <div class="rd-empty">
+            <div class="icon">🎽</div>
+            <h3 class="mt-2">Nobody has entered yet</h3>
+            <p class="text-muted mb-0">Entries appear here as soon as participants enrol in one of your categories.</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table rd-table align-middle">
+                <thead><tr><th>Participant</th><th>Category</th><th>Enrolled on</th><th>Status</th></tr></thead>
+                <tbody>
+                    @foreach (var enrolment in Model.Enrolments.OrderBy(e => e.CategoryName).ThenBy(e => e.ParticipantName))
+                    {
+                        <tr>
+                            <td class="fw-semibold">@enrolment.ParticipantName</td>
+                            <td>@enrolment.CategoryName</td>
+                            <td>@UiHelpers.DateShort(enrolment.EnrolmentDate)</td>
+                            <td><partial name="_StatusBadge" model="enrolment.Status" /></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    <div class="mt-4 d-flex gap-2">
+        <a class="btn btn-outline-secondary" asp-action="Events">← My events</a>
+        <a class="btn btn-rd" asp-action="Results" asp-route-id="@Model.Event.EventId">Enter results</a>
+    </div>
+</div>

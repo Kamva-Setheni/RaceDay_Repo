@@ -3,4 +3,5 @@ namespace RaceDay.Api.Dtos;
 public record EnrolmentResponse(
     int EnrolmentId, int ParticipantId, string ParticipantName,
     int CategoryId, string CategoryName, int EventId, string EventName,
-    DateTime EnrolmentDate, string Status);
+    DateTime EnrolmentDate, string Status,
+    decimal EntryFee = 0, DateTime EventDate = default);

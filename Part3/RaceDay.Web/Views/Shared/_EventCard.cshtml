@@ -1,0 +1,22 @@
+@model EventDto
+<div class="card rd-card h-100">
+    @if (!string.IsNullOrEmpty(Model.BannerImageUrl))
+    {
+        <img class="rd-card-img" src="@Model.BannerImageUrl" alt="Banner for @Model.Name"
+             onerror="this.onerror=null;this.src='@Url.Content("~/img/event-placeholder.svg")'" />
+    }
+    else
+    {
+        <div class="rd-card-img rd-placeholder @UiHelpers.TypeCss(Model.EventType)">@UiHelpers.TypeIcon(Model.EventType)</div>
+    }
+    <div class="card-body d-flex flex-column">
+        <div><span class="rd-type @UiHelpers.TypeCss(Model.EventType)">@Model.EventType</span></div>
+        <h3 class="rd-card-title">@Model.Name</h3>
+        <ul class="rd-meta">
+            <li>📅 @UiHelpers.DateLong(Model.EventDate)</li>
+            <li>📍 @Model.Location</li>
+            <li>📏 @Model.Distance.ToString("0.##") km</li>
+        </ul>
+        <a class="btn btn-rd mt-auto" asp-controller="Events" asp-action="Details" asp-route-id="@Model.EventId">View details</a>
+    </div>
+</div>

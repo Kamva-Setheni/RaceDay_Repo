@@ -1,0 +1,82 @@
+@model ResultsViewModel
+@{
+    ViewData["Title"] = "Results - " + Model.Event.Name;
+}
+<div class="container rd-main">
+    <p class="rd-eyebrow mb-1">Organiser &middot; @Model.Event.Name</p>
+    <h1 class="rd-display fs-1">Capture and publish results</h1>
+    <p class="text-muted">Enter each participant's finish time (hours:minutes:seconds) and finishing position. Results are published to the participant as soon as you save them.</p>
+
+    @if (ViewBag.Error is string error)
+    {
+        <div class="alert alert-warning">@error</div>
+    }
+
+    @if (!Model.Rows.Any())
+    {
+        <div class="rd-empty">
+            <div class="icon">⏱️</div>
+            <h3 class="mt-2">No entries to capture results for</h3>
+            <p class="text-muted mb-0">Results can be captured once participants have enrolled.</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table rd-table align-middle">
+                <thead>
+                    <tr><th>Participant</th><th>Category</th><th>Finish time</th><th>Position</th><th>Status</th><th></th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in Model.Rows)
+                    {
+                        var current = row.Result;
+                        var formId = "result-" + row.Enrolment.EnrolmentId;
+                        <tr>
+                            <td class="fw-semibold">
+                                @row.Enrolment.ParticipantName
+                                <form id="@formId" asp-action="SaveResult" method="post">
+                                    <input type="hidden" name="EventId" value="@Model.Event.EventId" />
+                                    <input type="hidden" name="EnrolmentId" value="@row.Enrolment.EnrolmentId" />
+                                    <input type="hidden" name="ResultId" value="@(current?.ResultId)" />
+                                </form>
+                            </td>
+                            <td>@row.Enrolment.CategoryName</td>
+                            <td>
+                                <input form="@formId" class="form-control form-control-sm" style="width:120px" name="FinishTime"
+                                       placeholder="01:45:30" value="@(current?.FinishTime is null ? "" : UiHelpers.FormatTime(current.FinishTime))" />
+                            </td>
+                            <td>
+                                <input form="@formId" class="form-control form-control-sm" style="width:90px" name="Position" type="number" min="1"
+                                       value="@(current?.Position)" />
+                            </td>
+                            <td>
+                                <select form="@formId" class="form-select form-select-sm" style="width:130px" name="Status">
+                                    @foreach (var status in new[] { "Finished", "DNF", "DNS", "DSQ" })
+                                    {
+                                        <option value="@status" selected="@((current?.Status ?? "Finished") == status)">@status</option>
+                                    }
+                                </select>
+                            </td>
+                            <td class="text-end">
+                                <button form="@formId" type="submit" class="btn btn-sm @(current is null ? "btn-rd" : "btn-outline-rd")">
+                                    @(current is null ? "Publish" : "Update")
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <p class="text-muted small mt-3">
+            <span class="status-pill status-confirmed">Finished</span>
+            <span class="status-pill status-danger">DNF / DSQ</span>
+            <span class="status-pill status-muted">DNS</span>
+            &nbsp;DNF = did not finish, DNS = did not start, DSQ = disqualified.
+        </p>
+    }
+
+    <div class="mt-4">
+        <a class="btn btn-outline-secondary" asp-action="Events">← My events</a>
+    </div>
+</div>
