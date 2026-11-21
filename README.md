@@ -236,7 +236,6 @@ A navy and electric-orange RaceDay theme with condensed italic headings, Bootstr
 
 The workflow `.github/workflows/build-and-test.yml` runs on every push. It validates the repository structure, builds the API, runs all 71 unit tests, builds the MVC project, builds the Docker image, then starts the container and checks that it serves the login page.
 
-![Part 3 CI build passing](docs/part3-ci-success.png)
 
 ### Part 3 video
 
