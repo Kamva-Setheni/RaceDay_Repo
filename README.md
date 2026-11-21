@@ -250,4 +250,4 @@ MDN Contributors (2026) *HTTP response status codes*. Available at: https://deve
 
 ## AI acknowledgement
 
-Generative AI (Claude, Anthropic) was used to assist with planning and drafting parts of this project, including the database design, API structure and code scaffolding. The code was reviewed, tested and is explained by the author in the video presentations.
+Generative AI (Claude, Anthropic) was used to assist with planning parts of this project, including the database design and API structure. 
