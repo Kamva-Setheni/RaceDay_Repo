@@ -2,7 +2,7 @@
 
 RaceDay is a full-stack, API-driven event management platform for the South African road running, walking and cycling community. Event Organisers create and manage events, categories and results, while Participants browse events, enter races and track their personal performance.
 
-This repository is built in three parts. **Part 1** (planning and database) and **Part 2** (RESTful API) are complete and documented below.
+This repository is built in three parts. **Part 1** (planning and database) and **Part 2** (RESTful API) and **Part 3** (MVC web application) are complete and documented below.
 
 ## User roles
 
@@ -24,8 +24,11 @@ Role-based access is enforced at the API level. A Participant cannot use Organis
     /Migrations               EF Core migrations
     /Models                   Entity classes
     /Services                 Session authentication handler
-  /RaceDay.Tests              xUnit tests (51 tests)
-/.github/workflows            CI workflows (Part 1 structure check, Part 2 build and test)
+  /RaceDay.Tests              xUnit tests (71 tests)
+/Part3
+  /RaceDay.Web                Part 3 - ASP.NET Core MVC web app (with Dockerfile)
+  docker-compose.yml          Starts the web app in Docker with one command
+/.github/workflows            CI workflows (Part 1 structure check, build, tests, MVC build and Docker image)
 ```
 
 ---
@@ -84,7 +87,7 @@ ASP.NET Core Web API (.NET 10), Entity Framework Core (Code-First) with SQL Serv
 - **Logout** clears the session. Without a valid session, protected endpoints return **401 Unauthorized**; the wrong role returns **403 Forbidden**.
 - **Organiser sign-up code:** anyone can register as a Participant, but registering as an Organiser needs the sign-up code, so users cannot simply pick the Organiser role.
 
-### API endpoints (24)
+### API endpoints (27)
 
 | Method | Route | Role |
 |---|---|---|
@@ -112,6 +115,9 @@ ASP.NET Core Web API (.NET 10), Entity Framework Core (Code-First) with SQL Serv
 | GET | /api/events/{id}/results | Public |
 | POST | /api/enrolments/{id}/payment | Participant (owner) |
 | GET | /api/users/me/payments | Participant |
+| POST | /api/events/{id}/banner | Organiser (owner) |
+| POST | /api/users/me/profile-picture | Any logged in |
+| GET | /api/events/mine | Organiser |
 
 ### Changes from the Part 1 plan
 
@@ -129,14 +135,16 @@ The API follows the Part 1 endpoint plan. These deliberate differences are expla
 
 ### Unit tests
 
-51 xUnit tests run the real API in memory with an in-memory database, so authentication, role checks and validation are tested end to end. Both success and failure scenarios are covered.
+71 xUnit tests run the real API in memory with an in-memory database, so authentication, role checks and validation are tested end to end. Both success and failure scenarios are covered.
 
 | Test class | Tests | Covers |
 |---|---|---|
 | AuthTests | 17 | Registration, login, logout, hashed passwords, session cookie, profile |
 | EventTests | 14 | Organiser event and category management, ownership, validation |
 | RoleAccessTests | 8 | Wrong role rejected (403), not logged in rejected (401), forged cookie, separate sessions |
-| EnrolmentTests | 12 | Enrolment recorded and linked, duplicates (409), cancelling, results, payments |
+| EnrolmentTests | 13 | Enrolment recorded and linked, duplicates (409), cancelling, results, payments, free categories |
+| ImageUploadTests | 12 | Banner and profile picture uploads, file validation, role checks (fake Azure storage) |
+| EventQueryTests | 7 | Event filters, organiser dashboard data, finisher counts |
 
 Run them from the repository root:
 ```
@@ -145,7 +153,7 @@ dotnet test Part2/RaceDay.Tests/RaceDay.Tests.csproj
 
 ### CI/CD
 
-The workflow `.github/workflows/part2-build-test.yml` runs on every push. It checks the Part 2 folder structure, builds the solution and runs all unit tests.
+The workflow `.github/workflows/build-and-test.yml` runs on every push. It checks the Part 2 folder structure, builds the solution and runs all unit tests.
 
 ![Part 2 CI build passing](docs/part2-ci-success.png)
 
@@ -155,6 +163,86 @@ The workflow `.github/workflows/part2-build-test.yml` runs on every push. It che
 ]
 ---
 
+## Part 3 - ASP.NET Core MVC web application
+
+`Part3/RaceDay.Web` is the web front end for RaceDay. It consumes the Part 2 API for **all** data operations. The MVC project has no database access and no business logic: it sends requests to the API and displays what comes back. Images are uploaded to the API, which stores them in Azure Blob Storage, so the web application never talks to Azure directly.
+
+```
+Browser  ->  RaceDay.Web (MVC, Docker, port 8080)  ->  RaceDay.Api (port 5003)  ->  SQL Server
+                                                                               ->  Azure Blob Storage
+```
+
+### Technology
+
+ASP.NET Core MVC (.NET 10), Bootstrap 5 with a custom RaceDay theme, server-side session, a typed `HttpClient` for the API, and Docker.
+
+### How to run it
+
+Prerequisites: Docker Desktop, the .NET 10 SDK, SQL Server Express with SSMS, and either the Azurite emulator or an Azure Storage account.
+
+1. **Start Azure Blob Storage** (the Azurite emulator, once):
+   ```
+   docker run -d --name azurite -p 10000:10000 mcr.microsoft.com/azure-storage/azurite azurite-blob --blobHost 0.0.0.0 --skipApiVersionCheck
+   ```
+   To use a real Azure Storage account instead, set its connection string before starting the API: `$env:AzureStorage__ConnectionString = "<connection string>"`.
+2. **Create the database** (once): `cd Part2/RaceDay.Api` then `dotnet ef database update`.
+3. **Start the API**: `dotnet run --launch-profile http` (it listens on http://localhost:5003). If the container cannot reach it, start it with `dotnet run --launch-profile http --urls "http://0.0.0.0:5003"`.
+4. **Start the web application in Docker with one command**:
+   ```
+   cd Part3
+   docker compose up --build
+   ```
+   Then open **http://localhost:8080**. The equivalent plain Docker commands are:
+   ```
+   docker build -t raceday-web Part3/RaceDay.Web
+   docker run --rm -p 8080:8080 -e ApiBaseUrl=http://host.docker.internal:5003 raceday-web
+   ```
+5. **Running without Docker** gives the identical application: `cd Part3/RaceDay.Web`, then `dotnet run --launch-profile http`, then open http://localhost:5100.
+
+### What each role can do
+
+| Role | Pages |
+|---|---|
+| Visitor | Home page with upcoming events and filters (search, type, date range), event details, register, log in |
+| Participant | Browse and filter events, event details with categories, enter a category (recorded immediately), My events (status, pay, cancel), My results (finish time and position such as "47th out of 312 finishers"), Profile (update details and upload a profile picture) |
+| Organiser | Dashboard (events created, total enrolments, upcoming events, next event), events (create, edit, delete with all fields and a banner image), category management, enrolments per event, results entry |
+
+Each role has its own navigation menu. Protected pages redirect visitors who are not logged in to the login page, and a user with the wrong role sees an "access denied" page.
+
+### Session management
+
+On login the MVC application calls the API, then stores the user's id and role in its own server-side session. It also keeps that user's API session cookie in the session and forwards it on every API call, so the API applies its own role checks too. Logging out clears both sessions and returns the user to the login page. A `SessionAuthorize` filter protects each page, and an expired session sends the user back to the login page with a message.
+
+### Azure Blob Storage
+
+Organisers can upload an event banner and any user can upload a profile picture. The file goes from the MVC form to the API, which checks it (JPG, PNG, GIF or WEBP, at most 5 MB, real image signature), stores it in Azure Blob Storage (containers `event-banners` and `profile-pictures`) and saves the blob's URL in the database. The web application displays the image from that URL. If storage is unavailable the user sees a friendly message instead of an error.
+
+### Docker
+
+`Part3/RaceDay.Web/Dockerfile` is a multi-stage build: the SDK image restores and publishes (the project file is copied first so the restore layer is cached), then a small ASP.NET runtime image runs the published output as a non-root user on port 8080. The API address is set with the `ApiBaseUrl` environment variable (default `http://host.docker.internal:5003`). `.dockerignore` keeps build output out of the image, and `docker-compose.yml` starts the container with a single command.
+
+### UI design
+
+A navy and electric-orange RaceDay theme with condensed italic headings, Bootstrap 5 for layout and responsiveness, and the same fonts, colours and spacing on every page. Statuses are colour coded: green for Confirmed and Finished, amber for Pending, red for DNF and DSQ, grey for DNS. Event types have their own colours and icons, event banners are shown on cards and detail pages, and invalid input shows friendly messages instead of raw errors.
+
+### Changes to the API and database in Part 3
+
+- **Database:** `Events.BannerImageUrl` and `Users.ProfilePictureUrl` (migration `AddImageUrls`). The ERD in `docs/erd.png` and `docs/raceday-schema.sql` were updated to match.
+- **New endpoints:** `POST /api/events/{id}/banner`, `POST /api/users/me/profile-picture` and `GET /api/events/mine` (organiser dashboard data).
+- **Event filters:** `GET /api/events` accepts `eventType`, `search`, `upcomingOnly`, `from` and `to`.
+- **Results** include the event date and the number of finishers, and **enrolments** include the entry fee and event date. Enrolling in a free category is confirmed immediately.
+
+### Part 3 CI/CD
+
+The workflow `.github/workflows/build-and-test.yml` runs on every push. It validates the repository structure, builds the API, runs all 71 unit tests, builds the MVC project, builds the Docker image, then starts the container and checks that it serves the login page.
+
+![Part 3 CI build passing](docs/part3-ci-success.png)
+
+### Part 3 video
+
+PASTE_PART3_VIDEO_LINK_HERE
+
+---
 ## References
 
 Anthropic (2026) *Claude* [Large language model]. Available at: https://claude.ai (Accessed: 19 October 2026).
