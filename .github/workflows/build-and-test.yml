@@ -1,0 +1,63 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+    branches: [ "**" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate repository structure
+        run: |
+          test -d docs
+          test -f docs/erd.png
+          test -f docs/endpoint-plan.pdf
+          test -f docs/raceday-schema.sql
+          test -d Part2/RaceDay.Api
+          test -d Part2/RaceDay.Tests
+          test -d Part3/RaceDay.Web
+          test -f Part3/RaceDay.Web/Dockerfile
+          test -f Part3/docker-compose.yml
+          test -f README.md
+          echo "Repository structure is valid."
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore and build the API and its tests
+        run: |
+          dotnet restore Part2/RaceDay.Tests/RaceDay.Tests.csproj
+          dotnet build Part2/RaceDay.Tests/RaceDay.Tests.csproj --no-restore
+
+      - name: Run unit tests
+        run: dotnet test Part2/RaceDay.Tests/RaceDay.Tests.csproj --no-build --verbosity normal
+
+      - name: Restore and build the MVC web application
+        run: |
+          dotnet restore Part3/RaceDay.Web/RaceDay.Web.csproj
+          dotnet build Part3/RaceDay.Web/RaceDay.Web.csproj --no-restore
+
+      - name: Build the Docker image
+        run: docker build -t raceday-web Part3/RaceDay.Web
+
+      - name: Start the container and check it responds
+        run: |
+          docker run -d --name raceday-web -p 8080:8080 raceday-web
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:8080/Account/Login -o login.html; then break; fi
+            sleep 2
+          done
+          grep -qi "log in" login.html
+          echo "The container started and served the login page."
+
+      - name: Show container logs if something failed
+        if: failure()
+        run: docker logs raceday-web || true
