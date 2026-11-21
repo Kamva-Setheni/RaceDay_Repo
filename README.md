@@ -240,7 +240,7 @@ The workflow `.github/workflows/build-and-test.yml` runs on every push. It valid
 
 ### Part 3 video
 
-PASTE_PART3_VIDEO_LINK_HERE
+[PASTE_PART3_VIDEO_LINK_HERE](https://youtu.be/pwF5DYPmv94?si=Mde9fLEQds8MHleh)
 
 ---
 ## References
